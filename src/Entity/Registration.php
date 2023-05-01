@@ -5,10 +5,17 @@ namespace App\Entity;
 use App\Repository\RegistrationRepository;
 use Doctrine\ORM\Mapping as ORM;
 use ApiPlatform\Core\Annotation\ApiResource;
+use Symfony\Component\Serializer\Annotation\Groups;
+use ApiPlatform\Exception\InvalidValueException;
+use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 
 /**
  * @ORM\Entity(repositoryClass=RegistrationRepository::class)
- * @ApiResource()
+ * @ORM\HasLifecycleCallbacks()
+ * @ApiResource(
+ * itemOperations={
+ *   "get"
+ *   })
  */
 class Registration
 {
@@ -45,6 +52,17 @@ class Registration
      * @ORM\JoinColumn(nullable=true)
      */
     private $event;
+
+    /**
+     * @ORM\PrePersist
+     */
+    public function updateRegisteredCounter(): void
+    {
+        if ($this->getEvent()->isFull())
+            throw new ConflictHttpException('The event is already full.');
+        else
+            $this->getEvent()->incrementRegistered();
+    }
 
     public function getId(): ?int
     {

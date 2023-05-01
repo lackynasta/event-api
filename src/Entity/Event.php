@@ -5,10 +5,17 @@ namespace App\Entity;
 use App\Repository\EventRepository;
 use Doctrine\ORM\Mapping as ORM;
 use ApiPlatform\Core\Annotation\ApiResource;
+use Symfony\Component\Serializer\Annotation\Groups;
+use Doctrine\Common\Collections\ArrayCollection;
 
 /**
  * @ORM\Entity(repositoryClass=EventRepository::class)
- * @ApiResource()
+ * @ApiResource(
+ * itemOperations={
+ *   "get",
+ *   "delete",
+ *   "put"
+ *   })
  */
 class Event
 {
@@ -38,6 +45,11 @@ class Event
      * @ORM\Column(type="integer")
      */
     private $limit_number;
+
+    /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    private $registered = 0;
 
     public function getId(): ?int
     {
@@ -90,5 +102,27 @@ class Event
         $this->limit_number = $limit_number;
 
         return $this;
+    }
+
+    public function getRegistered(): ?int
+    {
+        return $this->registered;
+    }
+
+    public function setRegistered(int $registered): self
+    {
+        $this->registered = $registered;
+
+        return $this;
+    }
+
+    public function incrementRegistered(): void
+    {
+        $this->registered++ ;
+    }
+
+    public function isFull(): bool
+    {
+        return $this->getRegistered() + 1 > $this->getLimitNumber();
     }
 }
