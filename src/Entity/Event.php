@@ -10,11 +10,13 @@ use Doctrine\Common\Collections\ArrayCollection;
 
 /**
  * @ORM\Entity(repositoryClass=EventRepository::class)
- * @ApiResource(
+ * @ApiResource(normalizationContext={"groups" = {"read"}},
+ *     denormalizationContext={"groups" = {"write"}},
  * itemOperations={
  *   "get",
  *   "delete",
- *   "put"
+ *   "put",
+ *   "patch"
  *   })
  */
 class Event
@@ -23,33 +25,45 @@ class Event
      * @ORM\Id
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
+     * @Groups({"read"})
      */
     private $id;
 
     /**
      * @ORM\Column(type="string", length=100)
+     * @Groups({"read", "write"})
      */
     private $name;
 
     /**
      * @ORM\Column(type="datetime")
+     * @Groups({"write"})
      */
-    private $start_date;
+    private $startDate;
 
     /**
      * @ORM\Column(type="datetime")
+     * @Groups({"read", "write"})
      */
-    private $end_date;
+    private $endDate;
 
     /**
      * @ORM\Column(type="integer")
+     * @Groups({"read", "write"})
      */
-    private $limit_number;
+    private $limitNumber;
 
     /**
      * @ORM\Column(type="integer", nullable=true)
+     * @Groups({"read"})
      */
     private $registered = 0;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Registration", mappedBy="event", orphanRemoval=true, cascade={"remove"})
+     *
+     */
+    private $registrations;
 
     public function getId(): ?int
     {
@@ -70,36 +84,36 @@ class Event
 
     public function getStartDate(): ?\DateTimeInterface
     {
-        return $this->start_date;
+        return $this->startDate;
     }
 
-    public function setStartDate(\DateTimeInterface $start_date): self
+    public function setStartDate(\DateTimeInterface $startDate): self
     {
-        $this->start_date = $start_date;
+        $this->startDate = $startDate;
 
         return $this;
     }
 
     public function getEndDate(): ?\DateTimeInterface
     {
-        return $this->end_date;
+        return $this->endDate;
     }
 
-    public function setEndDate(\DateTimeInterface $end_date): self
+    public function setEndDate(\DateTimeInterface $endDate): self
     {
-        $this->end_date = $end_date;
+        $this->endDate = $endDate;
 
         return $this;
     }
 
     public function getLimitNumber(): ?int
     {
-        return $this->limit_number;
+        return $this->limitNumber;
     }
 
-    public function setLimitNumber(int $limit_number): self
+    public function setLimitNumber(int $limitNumber): self
     {
-        $this->limit_number = $limit_number;
+        $this->limitNumber = $limitNumber;
 
         return $this;
     }
@@ -121,6 +135,9 @@ class Event
         $this->registered++ ;
     }
 
+    /**
+     * @Groups({"read"})
+     */
     public function isFull(): bool
     {
         return $this->getRegistered() + 1 > $this->getLimitNumber();
